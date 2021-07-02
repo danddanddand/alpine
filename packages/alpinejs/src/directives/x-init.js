@@ -5,4 +5,4 @@ import { evaluate } from "../evaluator";
 
 addRootSelector(() => `[${prefix('init')}]`)
 
-directive('init', skipDuringClone((el, { expression }) => evaluate(el, expression, {}, false)))
+directive('init', skipDuringClone((el, { expression }) => { expression !== '' && evaluate(el, expression, {}, false) }))

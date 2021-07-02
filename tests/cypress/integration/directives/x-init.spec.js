@@ -1,4 +1,4 @@
-import { haveText, html, test } from '../../utils'
+import {haveText, html, test} from '../../utils'
 
 test('sets text on init',
     html`
@@ -34,4 +34,27 @@ test('can make deferred changes with $nextTick',
         </div>
     `,
     ({ get }) => get('span').should(haveText('yo'))
+)
+
+let listener = () => {
+    cy.log('we are failing because of sytnax error')
+    return true;
+}
+test('x-init passed no value is ignored',
+    html`
+        <div x-data="{ foo: 'bar' }" x-init="">
+            <span>baz</span>
+        </div>
+    `
+    ,
+    ({ get, on, removeListener, fail }) => {
+        cy.on('uncaught:exception', listener )
+        get('#errors').should(haveText('false'))
+    },
+    () => {
+
+    },
+    () => {
+        cy.removeListener('uncaught:exception', listener)
+    }
 )
