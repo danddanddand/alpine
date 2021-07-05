@@ -110,7 +110,7 @@ export function runIfTypeOfFunction(receiver, value, scope, params) {
     }
 }
 
-export function tryCatch(el, expression, callback, ...args) {
+export function tryCatch(el : Node, expression : string, callback, ...args) {
     try {
         return callback(...args)
     } catch (e) {

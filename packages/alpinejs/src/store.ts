@@ -1,9 +1,13 @@
 import { reactive } from "./reactivity"
 
-let stores = {}
+let stores = Object.create(null)
 let isReactive = false
 
-export function store(name, value) {
+interface AlpineMandatoryProps extends Object {
+    init?: () => void,
+}
+
+export function store<T extends AlpineMandatoryProps>(name : string , value ? : T) {
     if (! isReactive) { stores = reactive(stores); isReactive = true; }
 
     if (value === undefined) {

@@ -1,4 +1,7 @@
-export function walk(el, callback) {
+interface WalkCallback {
+    ( el: Element & { _x_ignore? : boolean}, skip? : () => boolean ) : void;
+}
+export function walk(el : Element, callback : WalkCallback, _? : boolean ) {
     if (el instanceof ShadowRoot) {
         Array.from(el.children).forEach(el => walk(el, callback))
 

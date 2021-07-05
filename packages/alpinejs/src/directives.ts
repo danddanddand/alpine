@@ -1,26 +1,30 @@
-import { onAttributeRemoved, onElRemoved } from './mutation'
+import { onAttributeRemoved } from './mutation'
 import { evaluate, evaluateLater } from './evaluator'
 import { elementBoundEffect } from './reactivity'
 import Alpine from './alpine'
 
 let prefixAsString = 'x-'
 
-export function prefix(subject = '') {
+export function prefix(subject : string = '') {
     return prefixAsString + subject
 }
 
-export function setPrefix(newPrefix) {
+export function setPrefix(newPrefix : string) {
     prefixAsString = newPrefix
 }
 
-let directiveHandlers = {}
+let directiveHandlers = Object.create(null)
 
-export function directive(name, callback) {
+interface DirectiveContext {
+
+}
+type DirectiveCallback = ( el : Element, directiveContext: DirectiveContext) => void
+export function directive(name:string, callback : DirectiveCallback ) {
     directiveHandlers[name] = callback
 }
 
-export function directives(el, attributes, originalAttributeOverride) {
-    let transformedAttributeMap = {}
+export function directives(el : Element, attributes : NamedNodeMap, originalAttributeOverride? : NamedNodeMap ) {
+    let transformedAttributeMap : Record<string,string> = {}
 
     let directives = Array.from(attributes)
         .map(toTransformedAttributes((newName, oldName) => transformedAttributeMap[newName] = oldName))
@@ -50,7 +54,7 @@ export function deferHandlingDirectives(callback) {
     stopDeferring()
 }
 
-export function getDirectiveHandler(el, directive) {
+export function getDirectiveHandler(el : Element, directive) {
     let noop = () => {}
 
     let handler = directiveHandlers[directive.type] || noop
@@ -90,16 +94,16 @@ export function getDirectiveHandler(el, directive) {
     return fullHandler
 }
 
-export let startingWith = (subject, replacement) => ({ name, value }) => {
+export let startingWith = (subject : string, replacement : string) => ({ name, value } : Record<string,string>) => {
     if (name.startsWith(subject)) name = name.replace(subject, replacement)
 
     return { name, value }
 }
 
-export let into = i => i
+export let into = ( i : string ) => i
 
-function toTransformedAttributes(callback) {
-    return ({ name, value }) => {
+function toTransformedAttributes(callback : ( to : string, from: string ) => string) {
+    return ({ name, value } : Attribute) => {
         let { name: newName, value: newValue } = attributeTransformers.reduce((carry, transform) => {
             return transform(carry)
         }, { name, value })
@@ -109,21 +113,25 @@ function toTransformedAttributes(callback) {
         return { name: newName, value: newValue }
     }
 }
+interface Attribute {
+    name: string;
+    value: string;
+}
+type AttributeTransformer = (r: Attribute) => Attribute;
+let attributeTransformers : Array<AttributeTransformer> = []
 
-let attributeTransformers = []
-
-export function mapAttributes(callback) {
+export function mapAttributes(callback : AttributeTransformer) {
     attributeTransformers.push(callback)
 }
 
-function outNonAlpineAttributes({ name }) {
+function outNonAlpineAttributes({ name } : Attribute) {
     return alpineAttributeRegex().test(name)
 }
 
 let alpineAttributeRegex = () => (new RegExp(`^${prefixAsString}([^:^.]+)\\b`))
 
 function toParsedDirectives(transformedAttributeMap, originalAttributeOverride) {
-    return ({ name, value }) => {
+    return ({ name, value } : Attribute) => {
         let typeMatch = name.match(alpineAttributeRegex())
         let valueMatch = name.match(/:([a-zA-Z0-9\-:]+)/)
         let modifiers = name.match(/\.[^.\]]+(?=[^\]]*$)/g) || []
@@ -156,7 +164,7 @@ let directiveOrder = [
     'element',
 ]
 
-function byPriority(a, b) {
+function byPriority(a : { type:string|null }, b : { type:string|null }) {
     let typeA = directiveOrder.indexOf(a.type) === -1 ? DEFAULT : a.type
     let typeB = directiveOrder.indexOf(b.type) === -1 ? DEFAULT : b.type
 

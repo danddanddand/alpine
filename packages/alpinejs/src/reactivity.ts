@@ -1,10 +1,12 @@
 
 import { scheduler } from './scheduler'
+import {ReactiveEffect, ReactiveEffectOptions, UnwrapNestedRefs} from "@vue/reactivity";
 
-let reactive, effect, release, raw
+
+let reactive : AlpineReactiveFunction, effect : AlpineEffectFunction, release : AlpineReleaseFunction, raw : AlpineReleaseFunction
 
 let shouldSchedule = true
-export function disableEffectScheduling(callback) {
+export function disableEffectScheduling(callback :() => ReactiveEffect) {
     shouldSchedule = false
 
     callback()
@@ -12,10 +14,24 @@ export function disableEffectScheduling(callback) {
     shouldSchedule = true
 }
 
-export function setReactivityEngine(engine) {
+type AlpineReactiveFunction = <T extends object>(target: T) => UnwrapNestedRefs<T>
+type AlpineReleaseFunction = (effect: ReactiveEffect) => void
+type AlpineRawFunction = <T>(observed: T) => T
+type AlpineEffectFunction = <T = any>(fn: () => T, options?: ReactiveEffectOptions) => ReactiveEffect<T>
+type AlpineCleanupFunction = () => void;
+type AlpineEffectTuple = [unknown, AlpineCleanupFunction];
+
+interface ReactivityEngine {
+    reactive : AlpineReactiveFunction // reactive in vue
+    release : AlpineReleaseFunction // stop in vue
+    raw : AlpineRawFunction
+    effect : AlpineEffectFunction
+}
+
+export function setReactivityEngine(engine : ReactivityEngine ) {
     reactive = engine.reactive
     release = engine.release
-    effect = (callback) => engine.effect(callback, { scheduler: task => {
+    effect = <T = any>(callback: () => T) => engine.effect(callback, { scheduler: task => {
         if (shouldSchedule) {
             scheduler(task)
         } else {
@@ -25,19 +41,19 @@ export function setReactivityEngine(engine) {
     raw = engine.raw
 }
 
-export function overrideEffect(override) { effect = override }
+export function overrideEffect(override :AlpineEffectFunction) { effect = override }
 
-export function elementBoundEffect(el) {
+export function elementBoundEffect(el : Element & { _x_effects?:Set<Function>, _x_runEffects?:()=>void}) : AlpineEffectTuple {
     let cleanup = () => {}
 
-    let wrappedEffect = (callback) => {
+    let wrappedEffect = (callback :() => ReactiveEffect) => {
         let effectReference = effect(callback)
 
         if (! el._x_effects) {
-            el._x_effects = new Set
+            el._x_effects = new Set<Function>()
 
             // Livewire depends on el._x_runEffects.
-            el._x_runEffects = () => { el._x_effects.forEach(i => i()) }
+            el._x_runEffects = () => { el._x_effects!.forEach(i => i()) }
         }
 
         el._x_effects.add(effectReference)
@@ -45,7 +61,7 @@ export function elementBoundEffect(el) {
         cleanup = () => {
             if (effectReference === undefined) return
 
-            el._x_effects.delete(effectReference)
+            el._x_effects!.delete(effectReference)
 
             release(effectReference)
         }

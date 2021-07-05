@@ -45,7 +45,7 @@ export function allSelectors() {
 export function addRootSelector(selectorCallback) { rootSelectorCallbacks.push(selectorCallback) }
 export function addInitSelector(selectorCallback) { initSelectorCallbacks.push(selectorCallback) }
 
-export function closestRoot(el) {
+export function closestRoot(el : Element ) : Element{
     if (rootSelectors().some(selector => el.matches(selector))) return el
 
     if (! el.parentElement) return
@@ -53,11 +53,11 @@ export function closestRoot(el) {
     return closestRoot(el.parentElement)
 }
 
-export function isRoot(el) {
+export function isRoot(el : Element ) {
     return rootSelectors().some(selector => el.matches(selector))
 }
 
-export function initTree(el, walker = walk) {
+export function initTree(el : Element & { _x_ignore? : boolean}, walker = walk) {
     deferHandlingDirectives(() => {
         walker(el, (el, skip) => {
             directives(el, el.attributes).forEach(handle => handle())

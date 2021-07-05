@@ -41,7 +41,7 @@ export function closestDataProxy(el) {
     return mergeProxies(closestDataStack(el))
 }
 
-export function mergeProxies(objects) {
+export function mergeProxies<T extends Object>(objects: T[] ) {
     return new Proxy({}, {
         ownKeys: () => {
             return Array.from(new Set(objects.flatMap(i => Object.keys(i))))

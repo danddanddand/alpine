@@ -1,8 +1,8 @@
 
-export default function on (el, event, modifiers, callback) {
-    let listenerTarget = el
+export default function on (el : Element, event : Event, modifiers : string[], callback : (e:Event) => void ) {
+    let listenerTarget : Element | Window | Document = el
 
-    let handler = e => callback(e)
+    let handler = ( e : Event ) => callback(e)
 
     let options = {}
 
