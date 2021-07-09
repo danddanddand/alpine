@@ -1,14 +1,14 @@
 
-export default function on (el : Element, event : Event, modifiers : string[], callback : (e:Event) => void ) {
+export default function on (el : HTMLElement, event : string, modifiers : string[], callback : (e:Event) => void ) {
     let listenerTarget : Element | Window | Document = el
 
     let handler = ( e : Event ) => callback(e)
 
-    let options = {}
+    let options : AddEventListenerOptions = {}
 
     // This little helper allows us to add functionality to the listener's
     // handler more flexibly in a "middleware" style.
-    let wrapHandler = (callback, wrapper) => (e) => wrapper(callback, e)
+    let wrapHandler = (callback : ( e : Event ) => void, wrapper : ( next : ( e: Event ) => void, e : Event ) => void ) => (e : Event ) => wrapper(callback, e)
 
     if (modifiers.includes('camel')) event = camelCase(event)
     if (modifiers.includes('passive')) options.passive = true
@@ -22,7 +22,7 @@ export default function on (el : Element, event : Event, modifiers : string[], c
         listenerTarget = document
 
         handler = wrapHandler(handler, (next, e) => {
-            if (el.contains(e.target)) return
+            if (el.contains(e.target as Node)) return
 
             if (el.offsetWidth < 1 && el.offsetHeight < 1) return
 
@@ -33,7 +33,7 @@ export default function on (el : Element, event : Event, modifiers : string[], c
     // Handle :keydown and :keyup listeners.
     handler = wrapHandler(handler, (next, e) => {
         if (isKeyEvent(event)) {
-            if (isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers)) {
+            if (isListeningForASpecificKeyThatHasntBeenPressed(e as KeyboardEvent, modifiers)) {
                 return
             }
         }
@@ -45,6 +45,7 @@ export default function on (el : Element, event : Event, modifiers : string[], c
         let nextModifier = modifiers[modifiers.indexOf('debounce')+1] || 'invalid-wait'
         let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
 
+        // @ts-ignore
         handler = debounce(handler, wait, this)
     }
 
@@ -52,6 +53,7 @@ export default function on (el : Element, event : Event, modifiers : string[], c
         let nextModifier = modifiers[modifiers.indexOf('throttle')+1] || 'invalid-wait'
         let wait = isNumeric(nextModifier.split('ms')[0]) ? Number(nextModifier.split('ms')[0]) : 250
 
+        // @ts-ignore
         handler = throttle(handler, wait, this)
     }
 
@@ -70,18 +72,20 @@ export default function on (el : Element, event : Event, modifiers : string[], c
     }
 }
 
-function camelCase(subject) {
+function camelCase(subject : string) {
     return subject.toLowerCase().replace(/-(\w)/g, (match, char) => char.toUpperCase())
 }
 
-function debounce(func, wait) {
-    var timeout
+
+function debounce(func : Function, wait : number, ...args: any[]) {
+    var timeout: number | undefined
 
     return function() {
-        var context = this, args = arguments
+        // @ts-ignore
+        var context = this
 
         var later = function () {
-            timeout = null
+            timeout = undefined
 
             func.apply(context, args)
         }
@@ -92,11 +96,12 @@ function debounce(func, wait) {
     }
 }
 
-function throttle(func, limit) {
-    let inThrottle
+function throttle(func : Function, limit : number, ...args: any[] ) {
+    let inThrottle : boolean | undefined;
 
     return function() {
-        let context = this, args = arguments
+        // @ts-ignore
+        let context = this
 
         if (! inThrottle) {
             func.apply(context, args)
@@ -108,19 +113,19 @@ function throttle(func, limit) {
     }
 }
 
-function isNumeric(subject){
+function isNumeric(subject : any){
     return ! Array.isArray(subject) && ! isNaN(subject)
 }
 
-function kebabCase(subject) {
+function kebabCase(subject:string) {
     return subject.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/[_\s]/, '-').toLowerCase()
 }
 
-function isKeyEvent(event) {
+function isKeyEvent(event : string) {
     return ['keydown', 'keyup'].includes(event)
 }
 
-function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
+function isListeningForASpecificKeyThatHasntBeenPressed(e : KeyboardEvent, modifiers : string[] ) {
     let keyModifiers = modifiers.filter(i => {
         return ! ['window', 'document', 'prevent', 'stop', 'once'].includes(i)
     })
@@ -147,6 +152,7 @@ function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
             // Alias "cmd" and "super" to "meta"
             if (modifier === 'cmd' || modifier === 'super') modifier = 'meta'
 
+            // @ts-ignore
             return e[`${modifier}Key`]
         })
 
@@ -161,7 +167,7 @@ function isListeningForASpecificKeyThatHasntBeenPressed(e, modifiers) {
     return true
 }
 
-function keyToModifier(key) {
+function keyToModifier(key : string) {
     switch (key) {
         case '/':
             return 'slash'
