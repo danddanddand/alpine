@@ -1,7 +1,7 @@
 
-let datas = {}
+let datas = Object.create(null)
 
-export function data(name, callback) {
+export function data(name : string, callback : Function) {
     datas[name] = callback
 }
 

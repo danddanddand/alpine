@@ -32,7 +32,7 @@ directive('for', (el, { expression }, { effect, cleanup }) => {
 let shouldFastRender = true
 
 function loop(el, iteratorNames, evaluateItems, evaluateKey) {
-    let isObject = i => typeof i === 'object' && ! Array.isArray(i)
+    let isObject = (i : any) => typeof i === 'object' && ! Array.isArray(i)
     let templateEl = el
 
     evaluateItems(items => {
@@ -207,7 +207,7 @@ function parseForExpression(expression) {
 
     if (! inMatch) return
 
-    let res = {}
+    let res = Object.create(null)
     res.items = inMatch[2].trim()
     let item = inMatch[1].replace(stripParensRE, '').trim()
     let iteratorMatch = item.match(forIteratorRE)

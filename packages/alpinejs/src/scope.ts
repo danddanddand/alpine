@@ -1,9 +1,11 @@
 
-export function scope(node) {
+export function scope(node : Node) {
     return mergeProxies(closestDataStack(node))
 }
 
-export function addScopeToNode(node, data, referenceNode) {
+type NodeWithDataStack = Node & { _x_dataStack : any[] };
+
+export function addScopeToNode(node : NodeWithDataStack, data : any, referenceNode : Element) {
     node._x_dataStack = [data, ...closestDataStack(referenceNode || node)]
 
     return () => {
@@ -11,11 +13,11 @@ export function addScopeToNode(node, data, referenceNode) {
     }
 }
 
-export function hasScope(node) {
+export function hasScope(node : NodeWithDataStack) {
     return !! node._x_dataStack
 }
 
-export function refreshScope(element, scope) {
+export function refreshScope(element : NodeWithDataStack, scope) {
     let existingScope = element._x_dataStack[0]
 
     Object.entries(scope).forEach(([key, value]) => {
@@ -23,11 +25,11 @@ export function refreshScope(element, scope) {
     })
 }
 
-export function closestDataStack(node) {
+export function closestDataStack(node : Node & { _x_dataStack? : any[]} | ShadowRoot & { _x_dataStack? : any[]}) : any[] {
     if (node._x_dataStack) return node._x_dataStack
 
     if (node instanceof ShadowRoot) {
-        return closestDataStack(node.host)
+        return closestDataStack(node.host as unknown as ShadowRoot)
     }
 
     if (! node.parentNode) {
@@ -37,7 +39,7 @@ export function closestDataStack(node) {
     return closestDataStack(node.parentNode)
 }
 
-export function closestDataProxy(el) {
+export function closestDataProxy(el : Node) {
     return mergeProxies(closestDataStack(el))
 }
 
@@ -52,6 +54,7 @@ export function mergeProxies<T extends Object>(objects: T[] ) {
         },
 
         get: (target, name) => {
+            // @ts-ignore
             return (objects.find(obj => obj.hasOwnProperty(name)) || {})[name]
         },
 
@@ -59,8 +62,10 @@ export function mergeProxies<T extends Object>(objects: T[] ) {
             let closestObjectWithKey = objects.find(obj => obj.hasOwnProperty(name))
 
             if (closestObjectWithKey) {
+                // @ts-ignore
                 closestObjectWithKey[name] = value
             } else {
+                // @ts-ignore
                 objects[objects.length - 1][name] = value
             }
 

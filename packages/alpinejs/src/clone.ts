@@ -4,20 +4,20 @@ import { walk } from "./utils/walk"
 
 let isCloning = false
 
-export function skipDuringClone(callback) {
-    return (...args) => isCloning || callback(...args)
+export function skipDuringClone(callback : Function) {
+    return (...args : any[]) => isCloning || callback(...args)
 }
 
 export function onlyDuringClone(callback) {
-    return (...args) => isCloning && callback(...args)
+    return (...args : any[]) => isCloning && callback(...args)
 }
 
 export function skipWalkingSubClone(callback) {
-    return (...args) => isCloning || callback(...args)
+    return (...args : any[]) => isCloning || callback(...args)
 }
 
 export function interuptCrawl(callback) {
-    return (...args) => isCloning || callback(...args)
+    return (...args : any[]) => isCloning || callback(...args)
 }
 
 export function clone(oldEl, newEl) {
