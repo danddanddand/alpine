@@ -10,6 +10,7 @@ export default function on (el : HTMLElement, event : string, modifiers : string
     // handler more flexibly in a "middleware" style.
     let wrapHandler = (callback : ( e : Event ) => void, wrapper : ( next : ( e: Event ) => void, e : Event ) => void ) => (e : Event ) => wrapper(callback, e)
 
+    if (modifiers.includes("dot")) event = dotSyntax(event)
     if (modifiers.includes('camel')) event = camelCase(event)
     if (modifiers.includes('passive')) options.passive = true
     if (modifiers.includes('window')) listenerTarget = window
@@ -70,6 +71,10 @@ export default function on (el : HTMLElement, event : string, modifiers : string
     return () => {
         listenerTarget.removeEventListener(event, handler, options)
     }
+}
+
+function dotSyntax(subject) {
+    return subject.replace(/-/g, ".")
 }
 
 function camelCase(subject : string) {
@@ -139,7 +144,7 @@ function isListeningForASpecificKeyThatHasntBeenPressed(e : KeyboardEvent, modif
     if (keyModifiers.length === 0) return false
 
     // If one is passed, AND it matches the key pressed, we'll call it a press.
-    if (keyModifiers.length === 1 && keyModifiers[0] === keyToModifier(e.key)) return false
+    if (keyModifiers.length === 1 && keyToModifiers(e.key).includes(keyModifiers[0])) return false
 
     // The user is listening for key combinations.
     const systemKeyModifiers = ['ctrl', 'shift', 'alt', 'meta', 'cmd', 'super']
@@ -159,7 +164,7 @@ function isListeningForASpecificKeyThatHasntBeenPressed(e : KeyboardEvent, modif
         // If all the modifiers selected are pressed, ...
         if (activelyPressedKeyModifiers.length === selectedSystemKeyModifiers.length) {
             // AND the remaining key is pressed as well. It's a press.
-            if (keyModifiers[0] === keyToModifier(e.key)) return false
+            if (keyToModifiers(e.key).includes(keyModifiers[0])) return false
         }
     }
 
@@ -167,14 +172,27 @@ function isListeningForASpecificKeyThatHasntBeenPressed(e : KeyboardEvent, modif
     return true
 }
 
-function keyToModifier(key : string) {
-    switch (key) {
-        case '/':
-            return 'slash'
-        case ' ':
-        case 'Spacebar':
-            return 'space'
-        default:
-            return key && kebabCase(key)
+function keyToModifiers(key : string) {
+    if (! key) return []
+
+    key = kebabCase(key)
+
+    let modifierToKeyMap = {
+        'ctrl': 'control',
+        'slash': '/',
+        'space': '-',
+        'spacebar': '-',
+        'cmd': 'meta',
+        'esc': 'escape',
+        'up': 'arrow-up',
+        'down': 'arrow-down',
+        'left': 'arrow-left',
+        'right': 'arrow-right',
     }
+
+    modifierToKeyMap[key] = key
+
+    return Object.keys(modifierToKeyMap).map(modifier => {
+        if (modifierToKeyMap[modifier] === key) return modifier
+    }).filter(modifier => modifier)
 }

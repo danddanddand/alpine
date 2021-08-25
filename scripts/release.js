@@ -34,10 +34,19 @@ function writeNewAlpineVersion() {
     let docs = fs.readFileSync(file, 'utf8')
     docs = docs.replace(prevVersion, version)
     fs.writeFileSync(file, docs)
-    console.log('Writing new Alpine version to installation docs: '+version);
+    console.log('Writing new Alpine version to installation docs: '+version)
 
     writeToPackageDotJson('alpinejs', 'version', version)
-    console.log('Bumping alpinejs package.json: '+version);
+    console.log('Bumping alpinejs package.json: '+version)
+
+    writeToPackageDotJson('intersect', 'version', version)
+    console.log('Bumping @alpinejs/intersect package.json: '+version)
+
+    writeToPackageDotJson('persist', 'version', version)
+    console.log('Bumping @alpinejs/persist package.json: '+version)
+
+    writeToPackageDotJson('trap', 'version', version)
+    console.log('Bumping @alpinejs/trap package.json: '+version)
 }
 
 function writeNewDocsVersion() {
@@ -58,6 +67,15 @@ function publish() {
 
     console.log('Publishing @alpinejs/docs on NPM...');
     runFromPackage('docs', 'npm publish --access public')
+
+    console.log('Publishing @alpinejs/intersect on NPM...');
+    runFromPackage('intersect', 'npm publish --access public')
+
+    console.log('Publishing @alpinejs/persist on NPM...');
+    runFromPackage('persist', 'npm publish --access public')
+
+    console.log('Publishing @alpinejs/trap on NPM...');
+    runFromPackage('trap', 'npm publish --access public')
 
     log('\n\nFinished!')
 }
