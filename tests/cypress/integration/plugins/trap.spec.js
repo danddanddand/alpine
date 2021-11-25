@@ -100,3 +100,24 @@ test('can trap focus with noscroll',
         })
     },
 )
+
+test('can trap focus with noaccesskey',
+    [html`
+        <div x-data="{ open: false }">
+            <h1>I should have aria-hidden when outside trap</h1>
+
+            <button id="open" @click="open = true" accesskey="o">open</button>
+
+            <div x-trap.noaccesskey="open">
+                <button @click="open = false" id="close">close</button>
+            </div>
+        </div>
+    `],
+    ({ get }, reload) => {
+        get('#open').should(haveAttribute('accesskey', 'o'))
+        get('#open').click()
+        get('#open').should(notHaveAttribute('accesskey', 'o'))
+        get('#close').click()
+        get('#open').should(haveAttribute('accesskey', 'o'))
+    },
+)

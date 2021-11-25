@@ -7,7 +7,7 @@ export default function (Alpine) {
 
             let oldValue = false
 
-            let trap = createFocusTrap(el, { 
+            let trap = createFocusTrap(el, {
                 escapeDeactivates: false,
                 allowOutsideClick: true,
                 fallbackFocus: () => el,
@@ -15,6 +15,7 @@ export default function (Alpine) {
 
             let undoInert = () => {}
             let undoDisableScrolling = () => {}
+            let undoAccessKey = () => {}
 
             effect(() => evaluator(value => {
                 if (oldValue === value) return
@@ -24,6 +25,7 @@ export default function (Alpine) {
                     setTimeout(() => {
                         if (modifiers.includes('inert')) undoInert = setInert(el)
                         if (modifiers.includes('noscroll')) undoDisableScrolling = disableScrolling()
+                        if (modifiers.includes('noaccesskey')) undoAccessKey = setNoAccessKeys(el)
 
                         trap.activate()
                     });
@@ -36,6 +38,9 @@ export default function (Alpine) {
 
                     undoDisableScrolling()
                     undoDisableScrolling = () => {}
+
+                    undoAccessKey()
+                    undoAccessKey = () => {}
 
                     trap.deactivate()
                 }
@@ -50,6 +55,24 @@ export default function (Alpine) {
             if (modifiers.includes('inert') && evaluate(expression)) setInert(el)
         },
     ))
+}
+
+function setNoAccessKeys(el) {
+    let undos = []
+
+    crawlSiblingsUp(el, (sibling) => {
+        if( sibling.accessKey ) {
+            let cache = sibling.accessKey
+
+            sibling.removeAttribute('accesskey')
+
+            undos.push(() => sibling.setAttribute('accesskey', cache ) )
+        }
+    })
+
+    return () => {
+        while(undos.length) undos.pop()()
+    }
 }
 
 function setInert(el) {
