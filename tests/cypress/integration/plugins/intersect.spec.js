@@ -77,7 +77,10 @@ test('.half',
         get('span').should(haveText('0'))
         get('#container').scrollTo(0, 100, {duration: 100})
         get('span').should(haveText('0'))
-        get('#container').scrollTo(0, 210, {duration: 100})
+        // Scroll past the boundary instead of parking exactly on it: at exactly
+        // 50% visibility some browsers round the reported intersection ratio
+        // to just under the 0.5 threshold and never fire the observer...
+        get('#container').scrollTo(0, 211, {duration: 100})
         get('span').should(haveText('1'))
     },
 )
