@@ -198,6 +198,26 @@ test('works with x-teleport',
     },
 )
 
+test('initial-focus that resolves to nothing does not error when the dialog opens',
+    [html`
+        <div x-data="{ open: false }">
+            <button @click="open = ! open">Toggle</button>
+
+            <article x-dialog x-model="open" :initial-focus="document.querySelector('#does-not-exist')">
+                <input type="text" />
+                Dialog Contents!
+            </article>
+        </div>
+    `],
+    ({ get }) => {
+        get('article').should(notBeVisible())
+        get('button').click()
+        get('article').should(beVisible())
+        get('body').type('{esc}')
+        get('article').should(notBeVisible())
+    },
+)
+
 // Skipping these two tests as anything focus related seems to be flaky
 // with cypress, but fine in a real browser.
 // test('x-dialog traps focus'...

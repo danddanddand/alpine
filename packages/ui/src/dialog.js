@@ -40,7 +40,8 @@ function handleRoot(el, Alpine) {
                         if (! this.__isOpenState) return
 
                         setTimeout(() => {
-                            Alpine.bound(el, 'initial-focus').focus()
+                            // The binding may no longer resolve to an element by the time the dialog opens...
+                            Alpine.bound(el, 'initial-focus')?.focus()
                         }, 0);
                     })
                 },
