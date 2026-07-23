@@ -188,3 +188,46 @@ test.retry(5)('focusing away still closes panel inside a group if the focus attr
         get('#2 ul').should(notBeVisible())
     },
 )
+
+test('group close listeners are removed when a popover is destroyed',
+    [html`
+        <div x-data="{ show: true }" x-popover:group group>
+            <button @click="show = false" remove>Remove</button>
+
+            <template x-if="show">
+                <div x-data x-popover popover>
+                    <button x-popover:button>Toggle</button>
+
+                    <ul x-popover:panel>
+                        Dialog Contents!
+                    </ul>
+                </div>
+            </template>
+        </div>
+    `],
+    ({ get }, reload, window, document) => {
+        let closeCalls = 0
+
+        get('[popover]').then(([el]) => {
+            let data = window.Alpine.$data(el)
+            let close = data.__close
+
+            data.__close = (...args) => {
+                closeCalls++
+
+                return close.apply(data, args)
+            }
+        })
+
+        get('[remove]').click()
+        get('[popover]').should('not.exist')
+
+        get('[group]').then(([group]) => {
+            group.dispatchEvent(new window.CustomEvent('__close-others', {
+                detail: { el: document.createElement('div') },
+            }))
+        }).then(() => {
+            expect(closeCalls).to.equal(0)
+        })
+    },
+)

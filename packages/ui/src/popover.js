@@ -33,13 +33,21 @@ function handleRoot(el, Alpine) {
             return {
                 init() {
                     if (this.$data.__groupEl) {
-                        this.$data.__groupEl.addEventListener('__close-others', ({ detail }) => {
+                        this.__closeOthersHandler = ({ detail }) => {
                             if (detail.el.isSameNode(this.$el)) return
 
                             this.__close(false)
-                        })
+                        }
+
+                        this.$data.__groupEl.addEventListener('__close-others', this.__closeOthersHandler)
                     }
                 },
+                destroy() {
+                    if (this.$data.__groupEl) {
+                        this.$data.__groupEl.removeEventListener('__close-others', this.__closeOthersHandler)
+                    }
+                },
+                __closeOthersHandler: undefined,
                 __buttonEl: undefined,
                 __panelEl: undefined,
                 __isStatic: false,
