@@ -56,9 +56,35 @@ function handleRoot(el, Alpine) {
                 __tabGroupEl: undefined,
                 __manualActivation: false,
                 __addTab(el) { this.__tabs.push(el) },
+                __removeTab(el) {
+                    let removedIndex = this.__tabs.indexOf(el)
+
+                    if (removedIndex === -1) return
+
+                    let selectedTab = this.__tabs[this.__selectedIndex]
+
+                    this.__tabs.splice(removedIndex, 1)
+
+                    // Keep the selection pointing at the same tab, or hand it
+                    // to the nearest remaining tab if the selected one was removed...
+                    if (this.__tabs.length === 0) {
+                        this.__selectedIndex = null
+                    } else if (selectedTab === el) {
+                        this.__selectedIndex = Math.min(removedIndex, this.__tabs.length - 1)
+                    } else if (selectedTab) {
+                        this.__selectedIndex = this.__tabs.indexOf(selectedTab)
+                    }
+                },
                 __addPanel(el) { this.__panels.push(el) },
+                __removePanel(el) {
+                    let index = this.__panels.indexOf(el)
+
+                    if (index !== -1) this.__panels.splice(index, 1)
+                },
                 __selectTab(el) {
-                    this.__selectedIndex = this.__tabs.indexOf(el)
+                    let index = this.__tabs.indexOf(el)
+
+                    if (index !== -1) this.__selectedIndex = index
                 },
                 __activeTabs() {
                    return this.__tabs.filter(i => !i.__disabled)
@@ -83,6 +109,9 @@ function handleTab(el, Alpine) {
                 this.$data.__addTab(this.$el)
                 this.__tabEl.__disabled = Alpine.bound(this.$el, 'disabled', false)
                 this.__isDisabled = this.__tabEl.__disabled
+            },
+            destroy() {
+                this.$data.__removeTab(this.__tabEl)
             },
             __tabEl: undefined,
             __isDisabled: false,
@@ -137,6 +166,9 @@ function handlePanel(el, Alpine) {
             init() {
                 this.__panelEl = this.$el
                 this.$data.__addPanel(this.$el)
+            },
+            destroy() {
+                this.$data.__removePanel(this.__panelEl)
             },
             __panelEl: undefined,
         }},

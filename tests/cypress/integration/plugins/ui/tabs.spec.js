@@ -146,6 +146,42 @@ test('can disable a tab',
     },
 )
 
+test('removing the selected tab selects the nearest remaining tab',
+    [html`
+        <div x-data="{ tabs: ['First', 'Second', 'Third'] }">
+            <button @click="tabs.splice(1, 1)" remove>Remove second</button>
+
+            <div x-tabs>
+                <div x-tabs:list>
+                    <template x-for="tab in tabs" :key="tab">
+                        <button x-tabs:tab :id="'button-' + tab.toLowerCase()" x-text="tab"></button>
+                    </template>
+                </div>
+
+                <div x-tabs:panels>
+                    <template x-for="tab in tabs" :key="tab">
+                        <div x-tabs:panel :id="'panel-' + tab.toLowerCase()" x-text="tab + ' Panel'"></div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    `],
+    ({ get }) => {
+        get('#panel-first').should(beVisible())
+        get('#button-second').click()
+        get('#panel-second').should(beVisible())
+
+        get('[remove]').click()
+        get('#panel-second').should('not.exist')
+        get('#panel-third').should(beVisible())
+        get('#panel-first').should(notBeVisible())
+
+        get('#button-first').click()
+        get('#panel-first').should(beVisible())
+        get('#panel-third').should(notBeVisible())
+    },
+)
+
 test('can traverse tabs manually',
     [html`
         <div x-data x-tabs manual>
