@@ -1,4 +1,4 @@
-import { beVisible, haveAttribute, html, notBeVisible, notHaveAttribute, test } from '../../../utils'
+import { beVisible, haveAttribute, haveFocus, html, notBeVisible, notHaveAttribute, test } from '../../../utils'
 
 test('button toggles panel',
     [html`
@@ -186,5 +186,47 @@ test.retry(5)('focusing away still closes panel inside a group if the focus attr
         cy.focused().tab()
         get('#1 ul').should(notBeVisible())
         get('#2 ul').should(notBeVisible())
+    },
+)
+
+test('tabbing out of a panel doesnt wrap focus when the button has left the focus order',
+    [html`
+        <div>
+            <a href="#" first-link>First</a>
+
+            <div x-data x-popover>
+                <button x-popover:button>Toggle</button>
+
+                <ul x-popover:panel>
+                    <a href="#" last-link>Dialog Contents!</a>
+                </ul>
+            </div>
+        </div>
+    `],
+    ({ get }) => {
+        get('button').click()
+        get('ul').should(beVisible())
+        get('button').invoke('attr', 'disabled', 'disabled')
+        get('[last-link]').focus().tab()
+        get('[last-link]').should(haveFocus())
+        get('ul').should(beVisible())
+    },
+)
+
+test('tabbing out of a focus panel with nothing focusable after the button still closes the panel',
+    [html`
+        <div x-data x-popover>
+            <button x-popover:button>Toggle</button>
+
+            <ul x-popover:panel focus>
+                <a href="#" last-link>Dialog Contents!</a>
+            </ul>
+        </div>
+    `],
+    ({ get }) => {
+        get('button').click()
+        get('ul').should(beVisible())
+        get('[last-link]').focus().tab()
+        get('ul').should(notBeVisible())
     },
 )

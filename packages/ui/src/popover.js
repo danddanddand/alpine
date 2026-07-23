@@ -179,11 +179,16 @@ function handlePanel(el, Alpine) {
                 let els = this.$focus.within(document).all()
                 let buttonIdx = els.indexOf(this.$data.__buttonEl)
 
+                // The button may have left the focus order entirely (disabled, hidden, removed).
+                // Without this guard, splice(0) would treat the whole page as "after the button".
+                if (buttonIdx === -1) return
+
                 let nextEls = els
                     .splice(buttonIdx + 1) // Elements after button
                     .filter(el => ! this.$el.contains(el)) // Ignore items in panel
 
-                nextEls[0].focus()
+                // There may be nothing focusable after the button (the panel is last on the page)...
+                nextEls[0]?.focus()
 
                 Alpine.bound(el, 'focus') && this.$data.__close(false)
             }
