@@ -94,8 +94,8 @@ function handleTab(el, Alpine) {
 
             this.$el.focus()
         },
-        '@keydown.enter.prevent.stop'() { this.__selectTab(this.$el) },
-        '@keydown.space.prevent.stop'() { this.__selectTab(this.$el) },
+        '@keydown.enter.prevent.stop'() { if (! this.$el.__disabled) this.__selectTab(this.$el) },
+        '@keydown.space.prevent.stop'() { if (! this.$el.__disabled) this.__selectTab(this.$el) },
         '@keydown.home.prevent.stop'() { this.$focus.within(this.$data.__activeTabs()).first() },
         '@keydown.page-up.prevent.stop'() { this.$focus.within(this.$data.__activeTabs()).first() },
         '@keydown.end.prevent.stop'() { this.$focus.within(this.$data.__activeTabs()).last() },

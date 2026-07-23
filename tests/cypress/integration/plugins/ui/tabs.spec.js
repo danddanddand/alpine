@@ -146,6 +146,41 @@ test('can disable a tab',
     },
 )
 
+test('cannot select a disabled tab with the keyboard',
+    [html`
+        <div x-data>
+            <button @click="$refs.second.removeAttribute('disabled')" enable-second>Enable second</button>
+
+            <div x-tabs>
+                <div x-tabs:list>
+                    <button x-tabs:tab button-1>First</button>
+                    <button x-tabs:tab button-2 x-ref="second" disabled>Second</button>
+                </div>
+
+                <div x-tabs:panels>
+                    <div x-tabs:panel panel-1>First Panel</div>
+                    <div x-tabs:panel panel-2>Second Panel</div>
+                </div>
+            </div>
+        </div>
+    `],
+    ({ get }) => {
+        get('[enable-second]').click()
+
+        get('[button-2]').click()
+        get('[panel-1]').should(beVisible())
+        get('[panel-2]').should(notBeVisible())
+
+        get('[button-2]').focus().type('{enter}')
+        get('[panel-1]').should(beVisible())
+        get('[panel-2]').should(notBeVisible())
+
+        get('[button-2]').type(' ')
+        get('[panel-1]').should(beVisible())
+        get('[panel-2]').should(notBeVisible())
+    },
+)
+
 test('can traverse tabs manually',
     [html`
         <div x-data x-tabs manual>
