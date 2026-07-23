@@ -152,7 +152,15 @@ function handlePanel(el, Alpine) {
             this.$data.__panelEl = this.$el
         },
         'x-effect'() {
-            this.$data.__isOpen && Alpine.bound(el, 'focus') && this.$focus.first()
+            if (! this.$data.__isOpen) return
+            if (! Alpine.bound(el, 'focus')) return
+
+            // Showing the panel is deferred, so wait a frame before searching it
+            // for something to focus (a hidden panel has no focusable elements),
+            // and re-check that it wasn't closed again in the meantime...
+            requestAnimationFrame(() => {
+                this.$data.__isOpen && this.$focus.first()
+            })
         },
         'x-ref': 'panel',
         ':id'() { return this.$id('alpine-popover-panel') },
